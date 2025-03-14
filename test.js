@@ -1,47 +1,68 @@
-// Load the data
-const penguins = d3.csv("penguins.csv");
+//Define data
+let data = [
+    { name: 'Rainne'    , rating: 8 },
+    { name: 'Buddy'    , rating: 7 },
+    { name: 'Paddy'   , rating: 3 },
+    { name: 'Sticky', rating: 9 },
+    { name: 'Midnight'  , rating: 5 },
+    { name: 'Leo'  , rating: 6 }
+  ];
 
-// Once the data is loaded, proceed with plotting
-penguins.then(function(data) {
-    // Convert string values to numbers
-    data.forEach(function(d) {
-        d.bill_length_mm = +d.bill_length_mm;
-        d.flipper_length_mm = +d.flipper_length_mm;
-    });
+  let 
+  width = 600,
+  height = 400;
 
-    // Define the dimensions and margins for the SVG
-    const width = 600, height = 400;
-    const margin = {top: 30, bottom: 30, left: 30, right: 30};
+let margin = {
+  top: 50,
+  bottom: 50,
+  left: 50,
+  right: 50
+}
 
-    // Create the SVG container
-    const svg = d3.select("#scatterplot")
-      .attr("width", width)
-      .attr("height", height)
-      .style('background', '#e9f7f2');
-      
-    // Set up scales for x and y axes
-    const xScale = d3.scaleLinear()
-        .domain([d3.min(data, d => d.bill_length_mm)-5, d3.max(data, d => d.bill_length_mm)+5])
-        .range([margin.left, width - margin.right]);
+let svg = d3.select('body')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('background', 'lightpink')
 
-    const yScale = d3.scaleLinear()
-        .domain([d3.min(data, d => d.flipper_length_mm)-5, d3.max(data, d => d.flipper_length_mm)+5])
-        .range([height - margin.bottom, margin.top]);
+let yscale = d3.scaleLinear()
+              .domain([0,10])
+              .range([height - margin.bottom, margin.top])
 
-    // Add scales     
-    svg.append('g')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(d3.axisLeft().scale(yScale));
+let xscale = d3.scaleBand()
+              .domain(data.map(d => d.name))
+              .range([margin.left, width - margin.right])   
+              .padding(0.5)           
 
-    svg.append('g')
-          .attr('transform', `translate(0,${height - margin.bottom})`)
-          .call(d3.axisBottom().scale(xScale));
+let yaxis = svg.append('g')
+              .call(d3.axisLeft().scale(yscale))
+              .attr('transform', `translate(${margin.left} , 0)`)
+              
+let xaxis = svg.append('g')
+              .call(d3.axisBottom().scale(xscale))
+              .attr('transform', `translate(0,${height - margin.bottom})`)
 
-    // Add circles for each data point
-    svg.selectAll("circle")
-        .data(data)
-        .enter().append("circle")
-        .attr("cx", d => xScale(d.bill_length_mm))
-        .attr("cy", d => yScale(d.flipper_length_mm))
-        .attr("r", 3);
-});
+//Draw the labels
+svg.append('text')
+  .text('Name')
+  .attr('x', width/2)
+  .attr('y', height - 15)
+
+svg.append('text')
+  .text('Rating')
+  .attr('x', 0-height/2)
+  .attr('y', 25)
+  .attr('transform', 'rotate(-90)')
+
+let line = d3.line()
+            .x(d => xscale(d.name) +xscale.bandwidth()/2)
+            .y(d => yscale(d.rating))
+            .curve(d3.curveNatural)
+
+let path = svg.append('path')
+              .datum(data)
+              .attr('d', line)
+              .attr('fill', 'none')
+              .attr('stroke', 'blue')
+              .attr('stroke-width', 2)
+
